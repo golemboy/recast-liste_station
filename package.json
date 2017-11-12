@@ -1,0 +1,23 @@
+{
+  "name": "recast-liste_station",
+  "version": "1.0.0",
+  "description": "webhook",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/golemboy/recast-liste_station.git"
+  },
+  "author": "olivier",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/golemboy/recast-liste_station/issues"
+  },
+  "homepage": "https://github.com/golemboy/recast-liste_station#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2"
+  }
+}

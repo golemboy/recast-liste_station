@@ -4,12 +4,15 @@ const port = 443;
 
 
 'use strict';
-/*
-exports.listeStations = (req, res) => {
+const express = require('express');
+const bodyParser = require('body-parser');
 
-}
-*/
+//let callListeStations = require('./ratp_calls.js');
+//let arrayToReplies  = require('./tools.js');
+
 function callListeStations (type, code) {
+  
+  
   return new Promise((resolve, reject) => {
     // Create the path for the HTTP get request to the APi
     let path = '/v3/stations/'+type+'/'+code+'?_format=json';
@@ -20,14 +23,8 @@ function callListeStations (type, code) {
       res.on('data', (d) => { body += d; }); // store each response chunk
       res.on('end', () => {
         // After all the data has been received parse the JSON for desired data
-        let stations = JSON.parse(body).result.stations;
-        let liste_stations = '';
-        for(let station of stations) {
-          liste_stations += station.slug+'\n';          
-        }
-        
-        // Create response
-        let output = `Voici la liste des stations :\n${liste_stations}`;
+        let liste_stations = JSON.parse(body).result.stations;
+        let output = stations.map( (station) => station.slug );
         // Resolve the promise with the output text
         console.log(output);
         resolve(output);
@@ -37,11 +34,13 @@ function callListeStations (type, code) {
       });
     });
   });
+  
 }
 
+function arrayToReplies ( arr) {
+  return arr.map( function (el) { return {type: 'text', content:el} } );  
+}
 
-const express = require('express')
-const bodyParser = require('body-parser')
 
 const app = express() 
 const server_port = 5000 
@@ -55,20 +54,18 @@ app.post('/', (req, res) => {
 
   callListeStations(type, code).then((output) => {
     let response = {
-    replies: [{
-      type: 'text',
-      content: ['output',' \r\n ','klmkml','456fdsf',' \r\n ','hdjskhfjsdk',' \r\n '],
-    }], 
-    conversation: {
-      memory: { key: 'value' }
+      replies: 'arrayToReplies(output)',
+      conversation: {
+        memory: { key: 'value' }
+      }
     }
-  }
-  res.send(response)
+  
+    res.send(response)
   }).catch((error) => {
     res.send({
     replies: [{
       type: 'text',
-      content: 'Roger that',
+      content: '',
     }], 
     conversation: {
       memory: { key: 'value' }

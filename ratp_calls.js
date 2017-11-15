@@ -1,5 +1,9 @@
+const https = require('https');
+const host = 'api-ratp.pierre-grimaud.fr';
+const port = 443;
+
 'use strict';
-module.exports.callListeStations = function  (type, code) {
+module.exports.callListeStations = function (type, code) {
   return new Promise((resolve, reject) => {
     // Create the path for the HTTP get request to the APi
     let path = '/v3/stations/'+type+'/'+code+'?_format=json';
@@ -10,7 +14,7 @@ module.exports.callListeStations = function  (type, code) {
       res.on('data', (d) => { body += d; }); // store each response chunk
       res.on('end', () => {
         // After all the data has been received parse the JSON for desired data
-        let liste_stations = JSON.parse(body).result.stations;
+        let stations = JSON.parse(body).result.stations;
         let output = stations.map( (station) => station.slug );
         // Resolve the promise with the output text
         console.log(output);
@@ -22,4 +26,3 @@ module.exports.callListeStations = function  (type, code) {
     });
   });
 }
-

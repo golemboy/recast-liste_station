@@ -1,15 +1,34 @@
-const https = require('https');
-const host = 'api-ratp.pierre-grimaud.fr';
-const port = 443;
-
+/*
+//JSON simplifié envoyé par recast
+{         
+  "conversation":
+    {  
+    "memory":
+      {
+      "transport-type":
+        {
+        "value":"bus",
+        "raw":"bus"       
+        },
+      "transport-code":
+        {
+        "value":"58",
+        "raw":"58"        
+        }
+      },    
+    "language":"fr"
+  }
+}
+*/
 
 'use strict';
 const express = require('express');
 const bodyParser = require('body-parser');
 
-//let callListeStations = require('./ratp_calls.js');
-//let arrayToReplies  = require('./tools.js');
+const ratp_calls = require('./ratp_calls');
+const tools  = require('./tools');
 
+/*
 function callListeStations (type, code) {
   
   
@@ -23,8 +42,8 @@ function callListeStations (type, code) {
       res.on('data', (d) => { body += d; }); // store each response chunk
       res.on('end', () => {
         // After all the data has been received parse the JSON for desired data
-        let liste_stations = JSON.parse(body).result.stations;
-        let output = stations.map( (station) => station.slug );
+        let stations = JSON.parse(body).result.stations;
+        let output = stations.map( (station) => station.slug  );
         // Resolve the promise with the output text
         console.log(output);
         resolve(output);
@@ -37,10 +56,10 @@ function callListeStations (type, code) {
   
 }
 
-function arrayToReplies ( arr) {
-  return arr.map( function (el) { return {type: 'text', content:el} } );  
+function toReplies ( arr) {
+  return arr.map( (elem) =>  {return {type: 'text', content:elem}}  );  
 }
-
+*/
 
 const app = express() 
 const server_port = 5000 
@@ -48,13 +67,15 @@ app.use(bodyParser.json())
 
 app.post('/', (req, res) => {
   let memory = req.body.conversation.memory
-  let type = memory['transport-type'].value
-  let code = memory['transport-code'].value
-  console.log('parametre :'+type+code)
-
-  callListeStations(type, code).then((output) => {
+  
+  console.log('JSON memory:'+JSON.stringify(memory))
+   let type = memory['transport-type'].value
+   let code = memory['transport-code'].value
+   console.log('transport-type:'+type+', transport-code:'+code)
+    
+  ratp_calls.callListeStations(type, code).then((output) => {
     let response = {
-      replies: 'arrayToReplies(output)',
+      replies: tools.toReplies(output),
       conversation: {
         memory: { key: 'value' }
       }
@@ -65,7 +86,7 @@ app.post('/', (req, res) => {
     res.send({
     replies: [{
       type: 'text',
-      content: '',
+      content: error,
     }], 
     conversation: {
       memory: { key: 'value' }

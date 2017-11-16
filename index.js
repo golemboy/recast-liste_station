@@ -32,7 +32,7 @@ const app = express()
 const server_port = 5000 
 app.use(bodyParser.json()) 
 
-app.post('/', (req, res) => {
+app.post('/stations', (req, res) => {
   let memory = req.body.conversation.memory
   
   console.log('JSON memory:'+JSON.stringify(memory))
@@ -40,7 +40,7 @@ app.post('/', (req, res) => {
    let code = memory['transport-code'].value
    console.log('transport-type:'+type+', transport-code:'+code)
     
-  ratp_calls.call_liste_stations(type, code).then((output) => {
+  ratp_calls.call_stations(type, code).then((output) => {
     let response = {
       replies: tools.to_replies(output),
       conversation: {
@@ -51,18 +51,49 @@ app.post('/', (req, res) => {
     res.send(response)
   }).catch((error) => {
     res.send({
-    replies: [{
-      type: 'text',
-      content: error,
-    }], 
-    conversation: {
-      memory: { key: 'value' }
-    }
-  })
-  })
-
-  
+      replies: [{
+        type: 'text',
+        content: error,
+      }], 
+      conversation: {
+        memory: { key: 'value' }
+      }
+    })
+  })    
 })
+
+app.post('/schedules', (req, res) => {
+  let memory = req.body.conversation.memory
+  
+  let type = memory['transport-type'].value
+  let code = memory['transport-code'].value
+  let station = memory['transport-station'].value
+  console.log('transport-type:'+type+', transport-code:'+code+', transport-station:'+station)
+  
+  console.log('JSON memory:'+JSON.stringify(memory));
+  
+  ratp_calls.call_schedules(type, code, station).then((output) => {
+    let response = {
+      replies: tools.schedules_to_replies(output),
+      conversation: {
+        memory: { key: 'value' }
+      }
+    }
+  
+    res.send(response)
+  }).catch((error) => {
+    res.send({
+      replies: [{
+        type: 'text',
+        content: error,
+      }], 
+      conversation: {
+        memory: { key: 'value' }
+      }
+    })
+  })
+  
+});
 
 app.post('/errors', (req, res) => {
   console.log(req.body) 

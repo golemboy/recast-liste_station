@@ -3,7 +3,7 @@ const host = 'api-ratp.pierre-grimaud.fr';
 const port = 443;
 
 'use strict';
-module.exports.callListeStations = function (type, code) {
+module.exports.call_liste_stations = function (type, code) {
   return new Promise((resolve, reject) => {
     // Create the path for the HTTP get request to the APi
     let path = '/v3/stations/'+type+'/'+code+'?_format=json';

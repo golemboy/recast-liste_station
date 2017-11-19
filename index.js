@@ -73,35 +73,42 @@ app.post('/stations', (req, res) => {
 
 app.post('/schedules', (req, res) => {
   let memory = req.body.conversation.memory
-/*
+
   let type = 'bus'
   let code = '58'
   let result = 'hopitaux+broussais+et+saint+joseph'
   let station = 'broussais'
   let stations = []
-  */
+  
   if (memory !== undefined) {
     console.log('call schedules : JSON memory:'+JSON.stringify(memory))
-    let type = memory['transport-type'].value
-    let code = memory['transport-code'].value
-    let station = memory['transport-station'].value
-
-    if(memory['stations'] != undefined) {
+    type = memory['transport-type'].value
+    code = memory['transport-code'].value
+    station = memory['transport-station'].value
+    stations = memory['stations']
+    result = undefined
+    //console.log(stations)
+    if(stations !== undefined) {
       //recherche si la station donné en paramètre existe dans la liste des stations données précédement
       //on récupère la bonne station dans le bon slug
-      let result = memory['stations'].find( (element) => {
+      result = stations.find( (element) => {
         return element.includes(station) //recherche de type contains
       })
+      
     }
 
     console.log('transport-type:'+type+', transport-code:'+code+', transport-station:'+result)
 
   }
 
+  if (result === undefined) {
+    delete memory['transport-station']
+    res.send(tools.send_error("la station n'est pas correcte",memory))
+  }
 
   ratp_calls.call_schedules(type, code, result).then((output) => {
-    //memory['transport-station'].value = result
-    //memory['transport-station'].raw = result
+    delete memory['transport-station']
+
     let response = {
       "replies": tools.schedules_to_replies(output),
       "conversation": {
@@ -110,7 +117,7 @@ app.post('/schedules', (req, res) => {
     }
     console.log('send response : JSON response:'+JSON.stringify(response))
     res.send(response)
-    //next()
+
   }).catch((error) => {
     res.send({
       replies: [{

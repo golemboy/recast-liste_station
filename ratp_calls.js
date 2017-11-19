@@ -66,7 +66,8 @@ module.exports.call_stations = function (type, code) {
 }
 
 module.exports.call_schedules = function (type, code, station) {
-  let path = '/v3/schedules/'+type+'/'+code+'/'+station+'/A?_format=json';
+  let path = '/v3/schedules/'+get_type(type)+'/'+code+'/'+station+'/A+R?_format=json';
+  console.log('API Request: ' + host + path);
   return api_calls({host: host, path: path, port: port}).then( (content) => {
      console.log( JSON.stringify(content.result.schedules));
     return new Promise((resolve, reject) => {
@@ -78,3 +79,6 @@ module.exports.call_schedules = function (type, code, station) {
     });
   });
 }
+
+
+//GET /destinations/bus/58?_format=json

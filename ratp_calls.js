@@ -30,7 +30,7 @@ var api_calls = (options) => {
     // Make the HTTP get request to get the API
     https.get(options, (res) => {
       let body = ''; // var to store the response chunks
-      res.on('data', (d) => { body += d; }); // store each response 
+      res.on('data', (d) => { body += d; }); // store each response
       res.on('end', () => {
         resolve(JSON.parse(body));
       });
@@ -55,7 +55,7 @@ module.exports.call_stations = function (type, code) {
         let stations = JSON.parse(body).result.stations;
         let output = stations.map( (station) => station.slug );
         // Resolve the promise with the output text
-        console.log(output);
+        //console.log(output);
         resolve(output);
       });
       res.on('error', (error) => {
@@ -66,15 +66,15 @@ module.exports.call_stations = function (type, code) {
 }
 
 module.exports.call_schedules = function (type, code, station) {
-  let path = '/v3/schedules/'+type+'/'+code+'/'+station+'/A?_format=json';  
+  let path = '/v3/schedules/'+type+'/'+code+'/'+station+'/A?_format=json';
   return api_calls({host: host, path: path, port: port}).then( (content) => {
      console.log( JSON.stringify(content.result.schedules));
-    return new Promise((resolve, reject) => {      
+    return new Promise((resolve, reject) => {
       resolve(content.result.schedules);
     });
   }).catch( (error) => {
     return new Promise((resolve, reject) => {
       reject(error);
     });
-  });        
+  });
 }

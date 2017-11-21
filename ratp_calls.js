@@ -32,13 +32,36 @@ var api_calls = (options) => {
       let body = ''; // var to store the response chunks
       res.on('data', (d) => { body += d; }); // store each response
       res.on('end', () => {
-        resolve(JSON.parse(body));
+        let result = JSON.parse(body).result
+
+        if (result.message !== undefined) {
+          reject(JSON.parse(body))
+        }
+        else {
+          resolve(JSON.parse(body))
+        }
       });
       res.on('error', (error) => {
         reject(error);
       });
     });
   });
+}
+
+var verif_response = (response) => {
+  let result = JSON.parse(body).result
+  console.log( JSON.stringify(result))
+  if (result.message !== undefined) {
+    return new Promise( (resolve, reject) => {
+      reject(response)
+    } )
+  }
+  else {
+     return new Promise( (resolve, reject) => {
+      resolve(response)
+    } )
+  }
+
 }
 
 module.exports.call_stations = function (type, code) {
@@ -65,11 +88,11 @@ module.exports.call_stations = function (type, code) {
   });
 }
 
-module.exports.call_schedules = function (type, code, station) {
-  let path = '/v3/schedules/'+get_type(type)+'/'+code+'/'+station+'/A+R?_format=json';
+module.exports.call_schedules = function (type, code, station, way) {
+  let path = '/v3/schedules/'+get_type(type)+'/'+code+'/'+station+'/'+way+'?_format=json';
   console.log('API Request: ' + host + path);
   return api_calls({host: host, path: path, port: port}).then( (content) => {
-     console.log( JSON.stringify(content.result.schedules));
+     //console.log( JSON.stringify(content.result.schedules));
     return new Promise((resolve, reject) => {
       resolve(content.result.schedules);
     });
@@ -80,5 +103,19 @@ module.exports.call_schedules = function (type, code, station) {
   });
 }
 
-
 //GET /destinations/bus/58?_format=json
+module.exports.call_destination = function (type, code) {
+  let path = '/v3/destinations/'+get_type(type)+'/'+code+'?_format=json';
+  console.log('API Request: ' + host + path);
+  return api_calls({host: host, path: path, port: port}).then( (content) => {
+     console.log( JSON.stringify(content.result.destinations));
+    return new Promise((resolve, reject) => {
+      resolve(content.result.destinations);
+    });
+  }).catch( (error) => {
+    return new Promise((resolve, reject) => {
+      reject(error);
+    });
+  });
+}
+

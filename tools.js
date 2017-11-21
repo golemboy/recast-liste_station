@@ -14,7 +14,7 @@ module.exports.send_error = (error,memory) => {
     let response = {}
     response.replies = [{
        'type': 'text',
-        'content': error,
+        'content': error.result.message,
     }]
       
     response.conversation = {
@@ -23,3 +23,17 @@ module.exports.send_error = (error,memory) => {
     
     return response
 }
+
+/*
+
+}).catch((error) => {
+    res.send({
+      "replies": [{
+        'type': 'text',
+        'content': error.result.message,
+      }],
+      "conversation": {
+        "memory": memory
+      }
+    })
+*/

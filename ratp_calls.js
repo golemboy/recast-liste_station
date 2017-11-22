@@ -33,7 +33,7 @@ var api_calls = (options) => {
       res.on('data', (d) => { body += d; }); // store each response
       res.on('end', () => {
         let result = JSON.parse(body).result
-
+        //regarde si la réponse de l'API contient directement messge deans son result => c'est une erreur qui est envoyé par l'API
         if (result.message !== undefined) {
           reject(JSON.parse(body))
         }
@@ -64,29 +64,25 @@ var verif_response = (response) => {
 
 }
 
+//API Request: api-ratp.pierre-grimaud.fr/v3/stations/bus/58?_format=json
 module.exports.call_stations = function (type, code) {
-  return new Promise((resolve, reject) => {
-    // Create the path for the HTTP get request to the APi
-    let path = '/v3/stations/'+get_type(type)+'/'+code+'?_format=json';
-    console.log('API Request: ' + host + path);
-    // Make the HTTP get request to get the API
-    https.get({host: host, path: path, port: port}, (res) => {
-      let body = ''; // var to store the response chunks
-      res.on('data', (d) => { body += d; }); // store each response chunk
-      res.on('end', () => {
-        // After all the data has been received parse the JSON for desired data
-        let stations = JSON.parse(body).result.stations;
-        let output = stations.map( (station) => station.slug );
-        // Resolve the promise with the output text
-        //console.log(output);
-        resolve(output);
-      });
-      res.on('error', (error) => {
-        reject(error);
-      });
+  let path = '/v3/stations/'+get_type(type)+'/'+code+'?_format=json';
+  console.log('API Request: ' + host + path);
+  return api_calls({host: host, path: path, port: port}).then( (content) => {
+     //console.log( JSON.stringify(content.result.schedules));
+     let stations = content.result.stations
+     let output = stations.map( (station) => station.slug );
+    return new Promise((resolve, reject) => {
+      resolve(output);
+    });
+  }).catch( (error) => {
+    return new Promise((resolve, reject) => {
+      reject(error);
     });
   });
 }
+
+
 
 module.exports.call_schedules = function (type, code, station, way) {
   let path = '/v3/schedules/'+get_type(type)+'/'+code+'/'+station+'/'+way+'?_format=json';
@@ -118,4 +114,3 @@ module.exports.call_destination = function (type, code) {
     });
   });
 }
-

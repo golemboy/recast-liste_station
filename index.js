@@ -42,14 +42,13 @@ app.post('/stations', (req, res) => {
     console.log('call stations : JSON memory:'+JSON.stringify(memory))
     type = memory['transport-type'].value
     code = memory['transport-code'].value
-    //console.log('transport-type:'+type+', transport-code:'+code)
   }
 
   ratp_calls.call_stations(type, code).then((output) => {
     //le bot a une mémoire de poisson rouge, on récupère ses paramètres memory
     memory.stations = output //on rajoute la liste des stations
     let response = {
-      "replies": tools.to_replies(["je récupère la liste des stations"]),//tools.to_replies(output),
+      "replies": tools.to_replies(["je récupère la liste des stations, quelle sations ?"]),//tools.to_replies(output),
       "conversation": {
         "memory": memory //et on réinjecte la mémoire dans la réponse pour pouvoir la réutiliser
       }
@@ -58,17 +57,10 @@ app.post('/stations', (req, res) => {
     res.send(response)
 
   }).catch((error) => {
-    res.send({
-      replies: [{
-        type: 'text',
-        content: error,
-      }],
-      conversation: {
-        memory: { key: 'value' }
-      }
-    })
-
+    delete memory['transport-code'] //on supprime le code en mémoire car il n'est pas bon
+    res.send( tools.send_error(error, memory) )
   })
+
 })
 
 app.post('/schedules', (req, res) => {
@@ -80,7 +72,7 @@ app.post('/schedules', (req, res) => {
   let station = 'broussais'
   let way = 'A'
   let stations = []
-  
+
   if (memory !== undefined) {
     console.log('call schedules : JSON memory:'+JSON.stringify(memory))
     type = memory['transport-type'].value
@@ -95,7 +87,7 @@ app.post('/schedules', (req, res) => {
       result = stations.find( (element) => {
         return element.includes(station) //recherche de type contains
       })
-      
+
     }
 
     console.log('transport-type:'+type+', transport-code:'+code+', transport-station:'+result)
@@ -108,8 +100,18 @@ app.post('/schedules', (req, res) => {
     res.send(tools.send_error({"result":{"message":"la station n'est pas correcte"}},memory))
   }
 
-  ratp_calls.call_schedules(type, code, result,way).then((output) => {
-    
+  //Promise.all => on appel l'API sur les 2 directions A et R
+  Promise.all([
+      ratp_calls.call_schedules(type, code, result, 'A'),
+      ratp_calls.call_schedules(type, code, result, 'R')
+      //le trick `.map(p => p.catch(() => undefined))` aprés la fin du tableau où sont passés les 2 Promise,
+      //permet d'aller sur `then()` même si une promesse n'est pas respectée
+      //si la station demandée est valable dans les 2 directions, on va pousser les horaires des 2 directions
+      //si elle n'est valable que sur une direction, on pousse quand même les horaires de la bonne direction
+      //https://davidwalsh.name/promises-results
+  //].map(p => p.catch(() => undefined))).then( (output) => {
+  ].map(p => p.catch(() => [{"message":"....","destination":"...."}]))).then( (output) => {
+
 
     let response = {
       "replies": tools.schedules_to_replies(output),

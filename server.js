@@ -48,7 +48,7 @@ app.post('/stations', (req, res) => {
     //le bot a une mémoire de poisson rouge, on récupère ses paramètres memory
     memory.stations = output //on rajoute la liste des stations
     let response = {
-      "replies": tools.to_replies(["je récupère la liste des stations, quelle sations ?"]),//tools.to_replies(output),
+      "replies": tools.to_replies(["je récupère la liste des stations, quelle station ?"]),//tools.to_replies(output),
       "conversation": {
         "memory": memory //et on réinjecte la mémoire dans la réponse pour pouvoir la réutiliser
       }

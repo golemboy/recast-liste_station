@@ -1,4 +1,5 @@
 /*
+//http://192.168.1.8:5000/stations/
 //JSON simplifié envoyé par recast
 {
   "conversation":
@@ -19,6 +20,66 @@
     "language":"fr"
   }
 }
+
+//http://192.168.1.8:5000/schedules/
+
+{
+"conversation": {
+    "memory": {
+      "transport-type": {
+        "value": "bus",
+        "raw": "bus"
+      },
+      "transport-code": {
+        "value": "58",
+        "raw": "58"
+      },
+      "stations": [
+        "chatelet",
+        "pont+neuf+++quai+du+louvre",
+        "pont+neuf+++quai+des+grands+augustins",
+        "mazarine",
+        "saint+germain+++odeon",
+        "senat",
+        "musee+du+luxembourg",
+        "guynemer+vavin",
+        "brea+++notre+dame+des+champs",
+        "vavin",
+        "place+du+18+juin+1940",
+        "place+du+18+juin+1940+++rue+du+depart",
+        "gare+montparnasse",
+        "gaite",
+        "losserand+++maine",
+        "chateau+++mairie+du+14e",
+        "rue+benard",
+        "alesia+++les+plantes",
+        "hop.+notre+dame+de+bon+secours+++a.+chantin",
+        "jean+moulin",
+        "porte+de+chatillon",
+        "porte+didot+++lycee+raspail",
+        "porte+de+vanves",
+        "pont+de+la+vallee",
+        "jean+jaures+jean+bleuzen",
+        "carrefour+albert+legris",
+        "vanves+lycee+michelet",
+        "colonel+monteil",
+        "didot",
+        "hopitaux+broussais+et+saint+joseph",
+        "alesia+++didot",
+        "pernety",
+        "chateau",
+        "notre+dame+des+champs",
+        "raspail+++fleurus",
+        "fleurus",
+        "theatre+de+l'odeon",
+        "saint+andre+des+arts"
+      ], "transport-station":{
+          "value": "broussais",
+          "raw": "broussais"
+      }     
+    }
+  }
+}
 */
 
 'use strict';
@@ -29,7 +90,7 @@ const ratp_calls = require('./ratp_calls');
 const tools  = require('./tools');
 
 const app = express()
-const server_port = 5000
+const server_port = process.env.NODE_PORT || 5000
 app.use(bodyParser.json())
 
 app.post('/stations', (req, res) => {
@@ -79,16 +140,37 @@ app.post('/schedules', (req, res) => {
     code = memory['transport-code'].value
     station = memory['transport-station'].value
     stations = memory['stations']
-    result = undefined
-    //console.log(stations)
-    if(stations !== undefined) {
+    result = undefined    
+    if(stations !== undefined && station !== undefined) {
       //recherche si la station donnée en paramètre existe dans la liste des stations données précédement
       //on récupère la bonne station dans le bon slug
       result = stations.find( (element) => {
         return element.includes(station) //recherche de type contains
-      })
+      })    
+    } 
+    
+    else {
+      if (type !== undefined && code !== undefined && station !== undefined) {
+        ratp_calls.call_stations(type, code).then((output) => {
+          //le bot a une mémoire de poisson rouge, on récupère ses paramètres memory
+            stations = output //on rajoute la liste des stations            
+            //stations = memory.stations          
+            //console.log(stations)
 
+            
+            result = stations.find( (element) => {
+              return element.includes(station) //recherche de type contains
+            })
+            console.log(station+" "+result)
+
+        }).catch((error) => {
+          res.send(tools.send_error({"result":{"message":"la station n'est pas correcte"}},memory))
+        })
+        
+      }
     }
+    
+
 
     console.log('transport-type:'+type+', transport-code:'+code+', transport-station:'+result)
 
@@ -119,7 +201,7 @@ app.post('/schedules', (req, res) => {
         "memory": memory
       }
     }
-    console.log('send response : JSON response:'+JSON.stringify(response))
+    //console.log('send response : JSON response:'+JSON.stringify(response))
     res.send(response)
 
   }).catch((error) => {

@@ -33,7 +33,11 @@ var api_calls = (options) => {
       res.on('data', (d) => { body += d; }); // store each response
       res.on('end', () => {
         let result = JSON.parse(body).result
-        //regarde si la réponse de l'API contient directement messge deans son result => c'est une erreur qui est envoyé par l'API
+        console.log(result)
+        if(result === undefined) {
+          reject(JSON.parse(body))
+        }
+        //regarde si la réponse de l'API contient directement message dans son result => c'est une erreur qui est envoyé par l'API 
         if (result.message !== undefined) {
           reject(JSON.parse(body))
         }

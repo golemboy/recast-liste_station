@@ -153,17 +153,18 @@ app.post('/schedules', (req, res) => {
       if (type !== undefined && code !== undefined && station !== undefined) {
         ratp_calls.call_stations(type, code).then((output) => {
           //le bot a une mémoire de poisson rouge, on récupère ses paramètres memory
-            stations = output //on rajoute la liste des stations            
-            //stations = memory.stations          
+            memory.stations = output //on rajoute la liste des stations            
+            stations = memory.stations
             //console.log(stations)
-
             
             result = stations.find( (element) => {
               return element.includes(station) //recherche de type contains
             })
-            console.log(station+" "+result)
+            console.log("station recherchée :"+station+" - station trouvée :"+result)
+    
 
         }).catch((error) => {
+          console.log("promesse rompue");
           res.send(tools.send_error({"result":{"message":"la station n'est pas correcte"}},memory))
         })
         

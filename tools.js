@@ -16,29 +16,15 @@ module.exports.schedules_to_replies = function (arr) {
 }
 
 module.exports.send_error = (error,memory) => {
-    let response = {}
-    response.replies = [{
-       'type': 'text',
-        'content': error.result.message,
-    }]
-
-    response.conversation = {
-      'memory': memory
-    }
-
-    return response
-}
-
-/*
-
-}).catch((error) => {
-    res.send({
-      "replies": [{
+      let response = {}
+      response.replies = [{
         'type': 'text',
-        'content': error.result.message,
-      }],
-      "conversation": {
-        "memory": memory
+          'content': error.result.message,
+      }]
+
+      response.conversation = {
+        'memory': memory
       }
-    })
-*/
+
+      return response
+}

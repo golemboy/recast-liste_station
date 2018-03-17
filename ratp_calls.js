@@ -18,6 +18,10 @@ const type_transport = {
   'tramways':'tramways'
 }
 
+var rejectedPromise = (error) =>  Promise.reject(new Error(error))
+var resolvedPromise = (msg) => Promise.resolve(msg)
+
+
 var get_type = (value) => {
   let transport_type = undefined;
   transport_type = type_transport[value.toLowerCase().trim()];
@@ -33,7 +37,7 @@ var api_calls = (options) => {
       res.on('data', (d) => { body += d; }); // store each response
       res.on('end', () => {
         let result = JSON.parse(body).result
-        console.log(result)
+        //console.log(result)
         if(result === undefined) {
           reject(JSON.parse(body))
         }
@@ -56,52 +60,40 @@ var verif_response = (response) => {
   let result = JSON.parse(body).result
   console.log( JSON.stringify(result))
   if (result.message !== undefined) {
-    return new Promise( (resolve, reject) => {
-      reject(response)
-    } )
+    return rejectedPromise(response)
   }
   else {
-     return new Promise( (resolve, reject) => {
-      resolve(response)
-    } )
+     return resolvedPromise(response)
   }
 
 }
 
 //API Request: api-ratp.pierre-grimaud.fr/v3/stations/bus/58?_format=json
-module.exports.call_stations = function (type, code) {
+module.exports.call_stations = (type, code) => {
   let path = '/v3/stations/'+get_type(type)+'/'+code+'?_format=json';
   console.log('API Request: ' + host + path);
   return api_calls({host: host, path: path, port: port}).then( (content) => {
      //console.log( JSON.stringify(content.result.schedules));
      let stations = content.result.stations
      let output = stations.map( (station) => station.slug );
-    return new Promise((resolve, reject) => {
-      resolve(output);
-    });
+    return resolvedPromise(output)
   }).catch( (error) => {
-    return new Promise((resolve, reject) => {
-      reject(error);
-    });
+    return rejectedPromise(error)
   });
 }
 
-
-
-module.exports.call_schedules = function (type, code, station, way) {
+var call_schedules = (type, code, station, way) => {
   let path = '/v3/schedules/'+get_type(type)+'/'+code+'/'+station+'/'+way+'?_format=json';
   console.log('API Request: ' + host + path);
   return api_calls({host: host, path: path, port: port}).then( (content) => {
      //console.log( JSON.stringify(content.result.schedules));
-    return new Promise((resolve, reject) => {
-      resolve(content.result.schedules);
-    });
-  }).catch( (error) => {
-    return new Promise((resolve, reject) => {
-      reject(error);
-    });
-  });
+      return resolvedPromise(content.result.schedules)
+      
+    }).catch( (error) => {    
+      return rejectedPromise(error)
+  })
 }
+
 
 //GET /destinations/bus/58?_format=json
 module.exports.call_destination = function (type, code) {
@@ -109,12 +101,10 @@ module.exports.call_destination = function (type, code) {
   console.log('API Request: ' + host + path);
   return api_calls({host: host, path: path, port: port}).then( (content) => {
      console.log( JSON.stringify(content.result.destinations));
-    return new Promise((resolve, reject) => {
-      resolve(content.result.destinations);
-    });
+     return resolvedPromise(content.result.destinations);
   }).catch( (error) => {
-    return new Promise((resolve, reject) => {
-      reject(error);
-    });
+    return rejectedPromise(error)
   });
 }
+
+module.exports.call_schedules = call_schedules
